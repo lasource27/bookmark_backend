@@ -13,4 +13,5 @@ urlpatterns = [
     path('bookmark-create/', views.bookmarkCreate, name="bookmark-create"),
     path('bookmark-update/<str:pk>', views.bookmarkUpdate, name="bookmark-update"),
     path('bookmark-delete/<str:pk>', views.bookmarkDelete, name="bookmark-delete"),
+    path('generate-preview', views.generate_preview, name="generate-preview"),
 ]
