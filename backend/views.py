@@ -77,6 +77,7 @@ def bookmarkCreate(request):
 
 
     # json.loads: Deserialize string to a Python object
+    
     url = json.loads(request.body)
     preview_data = generate_preview(url)
     serializer = BookmarkSerializer(data=preview_data)
@@ -112,20 +113,31 @@ def generate_preview(page_url):
         'Access-Control-Max-Age': '3600',
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
-    req = requests.get(page_url, headers)
+
+    my_session = requests.session()
+    for_cookies = my_session.get(page_url)
+    cookies = for_cookies.cookies
+    req = my_session.get(page_url, headers=headers, cookies=cookies)
     html = BeautifulSoup(req.content, 'html.parser')
     # requests will provide us with our target’s HTML, and beautifulsoup4 will parse that data.
 
-    if get_domain(html) == None:
+    if get_domain(html) != None:
+        meta_data = {
+            'title': get_title(html),
+            'description': get_desc(html),
+            'page_url': page_url,
+            'domain': get_domain(html),
+        } 
+    else:
         extract = tldextract.extract(page_url)
-        get_domain(html) = extract.domain + extract.suffix
+        domain_name = extract.domain + '.' + extract.suffix
+        meta_data = {
+            'title': get_title(html),
+            'description': get_desc(html),
+            'page_url': page_url,
+            'domain': domain_name,
+        } 
 
-    meta_data = {
-        'title': get_title(html),
-        'description': get_desc(html),
-        'page_url': page_url,
-        'domain': get_domain(html)
-    }
     return meta_data
 
 
@@ -150,6 +162,7 @@ def get_desc(html):
     elif html.find("meta", property="description"):
         desc = html.find("meta", property="description").get('content')
     else:
+        print(html)
         desc = html.find_all("p")[0].string
     return desc
 
@@ -158,7 +171,7 @@ def get_image(html):
     if html.find("meta", property="og:image"):
         image = html.find("meta", property="og:image").get('content')
     elif html.find("link", rel="image_src"):
-        image = html.find("link", rel="image_src"").get('content')
+        image = html.find("link", rel="image_src").get('content')
     else:
         images = html.find_all("image")
         
@@ -171,6 +184,6 @@ def get_domain(html):
     elif html.find("meta", property="og:url"):
         domain = html.find("meta", property="og:url").get('content')
     else:
-        return None
+        domain = None
     return domain
 
