@@ -4,10 +4,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 import requests
+from requests import get
 from bs4 import BeautifulSoup
 from django.http import JsonResponse
 import json
 import tldextract
+from io import BytesIO
+from PIL import Image
 
 from backend.models import Bookmark, Folder, Tag
 from .serializers import BookmarkSerializer, FolderSerializer, TagSerializer
@@ -126,6 +129,7 @@ def generate_preview(page_url):
             'title': get_title(html),
             'description': get_desc(html),
             'page_url': page_url,
+            'preview_image': get_image(html),
             'domain': get_domain(html),
         } 
     else:
@@ -135,6 +139,7 @@ def generate_preview(page_url):
             'title': get_title(html),
             'description': get_desc(html),
             'page_url': page_url,
+            'preview_image': get_image(html),
             'domain': domain_name,
         } 
 
@@ -168,14 +173,31 @@ def get_desc(html):
 
 def get_image(html):
     image = None
-    if html.find("meta", property="og:image"):
-        image = html.find("meta", property="og:image").get('content')
-    elif html.find("link", rel="image_src"):
-        image = html.find("link", rel="image_src").get('content')
-    else:
-        images = html.find_all("image")
-        
-    return image
+    # if html.find("meta", property="og:image"):
+    #     image = html.find("meta", property="og:image").get('content')
+    # elif html.find("link", rel="image_src"):
+    #     image = html.find("link", rel="image_src").get('content')
+    # else:
+    images = html.find_all("img")
+    # print(images)
+    for image in images:
+        image_raw = image['src']
+        image = Image.open(BytesIO(image_raw))
+        width, height = image.size
+        print(width,height)
+    # def proportion(image):
+    #     return image.naturalWidth / image.naturalHeight < 3 or image.naturalHeight / image.naturalWidth < 3
+    # def area(image):
+    #     return image.naturalWidth*image.naturalHeight
+    # filtered_images = list[filter(proportion,images)]
+    # # print(filtered_images)
+    # # print("1231231312313")
+    # # print(filtered_images)
+    # new_images = []
+    # for image in filtered_images:
+    #     new_images.append(area(image))
+    # image = max(new_images)
+    return image.src
 
 def get_domain(html):
     domain = None
