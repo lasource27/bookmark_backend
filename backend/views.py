@@ -9,8 +9,9 @@ from bs4 import BeautifulSoup
 from django.http import JsonResponse
 import json
 import tldextract
-from io import BytesIO
+import io
 from PIL import Image
+import urllib
 
 from backend.models import Bookmark, Folder, Tag
 from .serializers import BookmarkSerializer, FolderSerializer, TagSerializer
@@ -179,12 +180,27 @@ def get_image(html):
     #     image = html.find("link", rel="image_src").get('content')
     # else:
     images = html.find_all("img")
-    # print(images)
+    src_list = []
     for image in images:
-        image_raw = image['src']
-        image = Image.open(BytesIO(image_raw))
-        width, height = image.size
-        print(width,height)
+        if image['src']:
+            image_raw = image['src']
+        elif image['data-src']:
+            image_raw = image['data-src']
+        else:
+            pass
+        
+        if image_raw.startswith('https://'):
+            # print(image_raw)
+            fd = urllib.request.urlopen(image_raw)
+            image_file = io.BytesIO(fd.read())
+            im = Image.open(image_file)
+            print(im.size)
+
+        
+        # print(image_raw)
+        # image = Image.open(image_raw)
+        # print(image.size)
+        
     # def proportion(image):
     #     return image.naturalWidth / image.naturalHeight < 3 or image.naturalHeight / image.naturalWidth < 3
     # def area(image):
