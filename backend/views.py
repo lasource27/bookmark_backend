@@ -180,7 +180,8 @@ def get_image(html):
     #     image = html.find("link", rel="image_src").get('content')
     # else:
     images = html.find_all("img")
-    src_list = []
+    largest_area = 0
+    largest_image_url = None
     for image in images:
         if image['src']:
             image_raw = image['src']
@@ -192,28 +193,22 @@ def get_image(html):
         if image_raw.startswith('https://'):
             # print(image_raw)
             fd = urllib.request.urlopen(image_raw)
+            
             image_file = io.BytesIO(fd.read())
-            im = Image.open(image_file)
-            print(im.size)
-
+            
+            try: 
+                im = Image.open(image_file)
+                width, height = im.size
+                area = width * height
+                if area > largest_area:
+                    largest_area = area
+                    largest_image_url = image_raw
+            except:
+                pass
+            
         
-        # print(image_raw)
-        # image = Image.open(image_raw)
-        # print(image.size)
-        
-    # def proportion(image):
-    #     return image.naturalWidth / image.naturalHeight < 3 or image.naturalHeight / image.naturalWidth < 3
-    # def area(image):
-    #     return image.naturalWidth*image.naturalHeight
-    # filtered_images = list[filter(proportion,images)]
-    # # print(filtered_images)
-    # # print("1231231312313")
-    # # print(filtered_images)
-    # new_images = []
-    # for image in filtered_images:
-    #     new_images.append(area(image))
-    # image = max(new_images)
-    return image.src
+    
+    return largest_image_url
 
 def get_domain(html):
     domain = None
