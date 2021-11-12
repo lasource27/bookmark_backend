@@ -168,47 +168,56 @@ def get_desc(html):
     elif html.find("meta", property="description"):
         desc = html.find("meta", property="description").get('content')
     else:
-        print(html)
-        desc = html.find_all("p")[0].string
+        
+        descs = html.find_all("p")
+        maximum_length = 1
+        desc = None
+        for this_desc in descs:
+            if this_desc.string != None:
+                if len(this_desc.string) > maximum_length:
+                    maximum_length = len(this_desc.string)
+                    desc = this_desc.string
     return desc
 
 def get_image(html):
     image = None
-    # if html.find("meta", property="og:image"):
-    #     image = html.find("meta", property="og:image").get('content')
-    # elif html.find("link", rel="image_src"):
-    #     image = html.find("link", rel="image_src").get('content')
-    # else:
-    images = html.find_all("img")
-    largest_area = 0
-    largest_image_url = None
-    for image in images:
-        if image['src']:
-            image_raw = image['src']
-        elif image['data-src']:
-            image_raw = image['data-src']
-        else:
-            pass
+    if html.find("meta", property="og:image"):
+        image = html.find("meta", property="og:image").get('content')
+        return image
+    elif html.find("link", rel="image_src"):
+        image = html.find("link", rel="image_src").get('content')
+        return image
+    else:
+        images = html.find_all("img")
         
-        if image_raw.startswith('https://'):
-            # print(image_raw)
-            fd = urllib.request.urlopen(image_raw)
-            
-            image_file = io.BytesIO(fd.read())
-            
-            try: 
-                im = Image.open(image_file)
-                width, height = im.size
-                area = width * height
-                if area > largest_area:
-                    largest_area = area
-                    largest_image_url = image_raw
-            except:
+        largest_area = 0
+        largest_image_url = None
+        for image in images:
+            if image['src']:
+                image_raw = image['src']
+            elif image['data-src']:
+                image_raw = image['data-src']
+            else:
                 pass
             
-        
-    
-    return largest_image_url
+            if image_raw.startswith('https://'):
+                user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
+                headers = {'User-Agent': user_agent}
+                request = urllib.request.Request(image_raw, headers=headers)
+                fd = urllib.request.urlopen(request)
+                
+                image_file = io.BytesIO(fd.read())
+                try:    
+                    im = Image.open(image_file)
+                    width, height = im.size
+                    area = width * height
+                    if area > largest_area:
+                        largest_area = area
+                        largest_image_url = image_raw
+                except:
+                    pass
+            
+        return largest_image_url
 
 def get_domain(html):
     domain = None
