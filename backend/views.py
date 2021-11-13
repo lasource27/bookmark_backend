@@ -189,7 +189,7 @@ def get_image(html):
         return image
     else:
         images = html.find_all("img")
-        
+        print(html)
         largest_area = 0
         largest_image_url = None
         for image in images:
