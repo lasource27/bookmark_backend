@@ -81,7 +81,6 @@ def bookmarkCreate(request):
 
 
     # json.loads: Deserialize string to a Python object
-    
     url = json.loads(request.body)
     preview_data = generate_preview(url)
     serializer = BookmarkSerializer(data=preview_data)
