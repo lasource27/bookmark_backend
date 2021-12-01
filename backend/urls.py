@@ -1,5 +1,11 @@
 from django.urls import path
 from . import views
+from .views import MyTokenObtainPairView
+
+from rest_framework_simplejwt.views import (
+    
+    TokenRefreshView,
+)
 
 
 urlpatterns = [
@@ -14,4 +20,11 @@ urlpatterns = [
     path('bookmark-update/<str:pk>', views.bookmarkUpdate, name="bookmark-update"),
     path('bookmark-delete/<str:pk>', views.bookmarkDelete, name="bookmark-delete"),
     path('generate-preview', views.generate_preview, name="generate-preview"),
+]
+
+urlpatterns += [
+    
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
 ]
