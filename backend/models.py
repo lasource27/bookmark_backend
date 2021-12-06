@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Bookmark(models.Model):
     
@@ -9,6 +10,7 @@ class Bookmark(models.Model):
     time_created = models.TimeField(auto_now_add=True, null=True)
     preview_image = models.CharField(max_length=600, blank=True, null=True)
     domain = models.CharField(max_length=200, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bookmarks")
     
 
     def __str__(self):

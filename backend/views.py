@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework import serializers
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 import requests
@@ -52,30 +53,36 @@ def apiOverview(request):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def bookmarkList(request):
-    bookmarks = Bookmark.objects.all()
+    user = request.user
+    bookmarks = user.bookmarks.all()
     serializer = BookmarkSerializer(bookmarks,many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def folderList(request):
     folders = Folder.objects.all()
     serializer = FolderSerializer(folders,many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def folderDetail(request, pk):
     folders = Folder.objects.get(id=pk)
     serializer = FolderSerializer(folders,many=False)
     return Response(serializer.data)
 
 @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def tagList(request):
     tags = Tag.objects.all()
     serializer = TagSerializer(tags, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def tagDetail(request, pk):
     tags = Tag.objects.get(id=pk)
     serializer = FolderSerializer(tags,many=False)
@@ -83,11 +90,14 @@ def tagDetail(request, pk):
 
 @api_view(['GET'])
 def bookmarkDetail(request, pk):
+    
+    
     bookmark = Bookmark.objects.get(id=pk)
     serializer = BookmarkSerializer(bookmark,many=False)
     return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def bookmarkCreate(request):
     # page_url = request.GET.get('page_url', '')
     # preview_data = generate_preview(page_url)
@@ -117,6 +127,7 @@ def bookmarkUpdate(request,pk):
     return Response(serializer.data)
     
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def bookmarkDelete(request, pk):
     bookmark = Bookmark.objects.get(id=pk)
     bookmark.delete()
