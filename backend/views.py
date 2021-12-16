@@ -1,8 +1,10 @@
 from django.shortcuts import render
-from rest_framework import serializers
+from rest_framework import serializers, generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+
 
 import requests
 from requests import get
@@ -15,7 +17,7 @@ from PIL import Image
 import urllib
 
 from backend.models import Bookmark, Folder, Tag
-from .serializers import BookmarkSerializer, FolderSerializer, TagSerializer
+from .serializers import BookmarkSerializer, FolderSerializer, TagSerializer, RegisterSerializer
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -256,3 +258,20 @@ def get_domain(html):
         domain = None
     return domain
 
+
+
+# =============================================================================================================================================================================
+
+class RegisterView(generics.GenericAPIView):
+
+    serializer_class = RegisterSerializer
+
+    def post(self, request):
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        user_data = serializer.data
+
+        return Response(user_data, status=status.HTTP_201_CREATED)
