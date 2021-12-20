@@ -1,6 +1,8 @@
 from .models import Bookmark, Folder, Tag
 from rest_framework import serializers
 from .models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 
 class BookmarkSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,6 +18,21 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        # ...
+
+        return token
+
+
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=50,min_length=6,write_only=True)
@@ -33,5 +50,5 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def create(self, validate_data):
+    def create(self, validated_data):
         return User.objects.create_user(**validated_data)

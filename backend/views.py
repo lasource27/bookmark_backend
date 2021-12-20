@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
-
+from django.conf import settings
 
 
 import requests
@@ -19,28 +19,19 @@ from PIL import Image
 import urllib
 
 from backend.models import Bookmark, Folder, Tag
-from .serializers import BookmarkSerializer, FolderSerializer, TagSerializer, RegisterSerializer
+from .serializers import BookmarkSerializer, FolderSerializer, TagSerializer, MyTokenObtainPairSerializer, RegisterSerializer
 from .models import User
 from .utils import Util 
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+import jwt
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-
-        # Add custom claims
-        token['username'] = user.username
-        # ...
-
-        return token
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
 
 # Create your views here.
 
@@ -55,7 +46,7 @@ def apiOverview(request):
         'Update':'/bookmark-update/<str:pk>',
         'Delete':'/bookmark-delete/<str:pk>',
     }
-
+    print(settings.EMAIL_HOST_USER,settings.EMAIL_HOST_PASSWORD)
     return Response(api_urls)
 
 
@@ -65,6 +56,7 @@ def bookmarkList(request):
     user = request.user
     bookmarks = user.bookmarks.all()
     serializer = BookmarkSerializer(bookmarks,many=True)
+    
     return Response(serializer.data)
 
 @api_view(['GET'])
@@ -290,5 +282,19 @@ class RegisterView(generics.GenericAPIView):
         return Response(user_data, status=status.HTTP_201_CREATED)
 
 class VerifyEmail(generics.GenericAPIView):
-    def get(self):
-        pass
+    def get(self,request):
+        token = request.GET.get('token')
+        try:
+            print('x')
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            print('y')
+            user = User.objects.get(id=payload['user_id'])
+            if not user.is_verified:
+                user.is_verified = True
+                user.save()
+            return Response({'email':'Successfully activated'}, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError as identifier:
+            return Response({'error':'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.exceptions.DecodeError as identifier:
+            print(identifier)
+            return Response({'error':'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
