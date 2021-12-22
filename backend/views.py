@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
+from django.http import HttpResponseRedirect
 
 
 import requests
@@ -292,9 +293,11 @@ class VerifyEmail(generics.GenericAPIView):
             if not user.is_verified:
                 user.is_verified = True
                 user.save()
-            return Response({'email':'Successfully activated'}, status=status.HTTP_200_OK)
+                request.session['pp_verifyemail'] = True
+                if 'pp_verifyemail' in request.session:
+                    del request.session['pp_verifyemail']
+                    return HttpResponseRedirect('http://localhost:3000/login')
         except jwt.ExpiredSignatureError as identifier:
             return Response({'error':'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.exceptions.DecodeError as identifier:
-            print(identifier)
             return Response({'error':'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
