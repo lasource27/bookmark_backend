@@ -46,6 +46,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         return ''
 
 
+class Folder(models.Model):
+    name = models.CharField(max_length=60, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="all_fd_user")
+
+    def __str__(self):
+        return f"{self.name}"
+
+class Tag(models.Model):
+    name = models.CharField(max_length=60, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="all_tg_user")
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Bookmark(models.Model):
     
     title = models.CharField(max_length=200, null=True)
@@ -55,25 +70,15 @@ class Bookmark(models.Model):
     time_created = models.TimeField(auto_now_add=True, null=True)
     preview_image = models.CharField(max_length=600, blank=True, null=True)
     domain = models.CharField(max_length=200, null=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bookmarks")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="all_bm_user")
+    folder = models.ManyToManyField(Folder,related_name="all_bm_folder")
+    tag = models.ManyToManyField(Tag,related_name="all_bm_tag")
     
 
     def __str__(self):
         return f"{self.title}"
 
-class Folder(models.Model):
-    bookmark = models.ManyToManyField(Bookmark,related_name="folders")
-    name = models.CharField(max_length=60, null=True)
 
-    def __str__(self):
-        return f"{self.name}"
-
-class Tag(models.Model):
-    bookmark = models.ManyToManyField(Bookmark,related_name="tags")
-    name = models.CharField(max_length=60, null=True)
-
-    def __str__(self):
-        return f"{self.name}"
 
 
 

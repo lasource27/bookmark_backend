@@ -32,8 +32,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
-
-
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=50,min_length=6,write_only=True)
 

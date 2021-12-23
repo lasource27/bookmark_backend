@@ -55,43 +55,41 @@ def apiOverview(request):
 @permission_classes([IsAuthenticated])
 def bookmarkList(request):
     user = request.user
-    bookmarks = user.bookmarks.all()
+    bookmarks = user.all_bm_user.all()
     serializer = BookmarkSerializer(bookmarks,many=True)
     
     return Response(serializer.data)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def folderList(request):
-    folders = Folder.objects.all()
+    user = request.user
+    folders = user.all_fd_user.all()
     serializer = FolderSerializer(folders,many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
 def folderDetail(request, pk):
     folders = Folder.objects.get(id=pk)
     serializer = FolderSerializer(folders,many=False)
     return Response(serializer.data)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def tagList(request):
-    tags = Tag.objects.all()
+    user = request.user
+    tags = user.all_tg_user.all()
     serializer = TagSerializer(tags, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
 def tagDetail(request, pk):
     tags = Tag.objects.get(id=pk)
     serializer = FolderSerializer(tags,many=False)
     return Response(serializer.data)
 
 @api_view(['GET'])
-def bookmarkDetail(request, pk):
-    
-    
+def bookmarkDetail(request, pk):  
     bookmark = Bookmark.objects.get(id=pk)
     serializer = BookmarkSerializer(bookmark,many=False)
     return Response(serializer.data)
@@ -109,10 +107,15 @@ def bookmarkCreate(request):
 
     # json.loads: Deserialize string to a Python object
     url = json.loads(request.body)
+    print(request.body)
     preview_data = generate_preview(url)
     serializer = BookmarkSerializer(data=preview_data)
-    if serializer.is_valid():
+    # serializer.user = request.user
+   
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
+        print("saved!!!!!!!!!!!!!!!")
+    
     return JsonResponse(preview_data)
 
 @api_view(['POST'])
@@ -159,6 +162,8 @@ def generate_preview(page_url):
             'page_url': page_url,
             'preview_image': get_image(html),
             'domain': get_domain(html),
+            
+            
         } 
     else:
         extract = tldextract.extract(page_url)
