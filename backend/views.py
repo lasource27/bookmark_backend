@@ -47,7 +47,7 @@ def apiOverview(request):
         'Update':'/bookmark-update/<str:pk>',
         'Delete':'/bookmark-delete/<str:pk>',
     }
-    print(settings.EMAIL_HOST_USER,settings.EMAIL_HOST_PASSWORD)
+    # print(settings.EMAIL_HOST_USER,settings.EMAIL_HOST_PASSWORD)
     return Response(api_urls)
 
 
@@ -69,10 +69,17 @@ def folderList(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def folderDetail(request, pk):
-    folders = Folder.objects.get(id=pk)
-    serializer = FolderSerializer(folders,many=False)
-    return Response(serializer.data)
+    folder = Folder.objects.get(id=pk)
+    bookmark_id = list(folder.all_bm_folder.all().values('id'))
+    # only get id of the bookmarks and make them into a python list
+    bookmarks = []
+    
+    for each in bookmark_id:
+        bookmarks.append(each['id'])
+    data = {"bookmarks":bookmarks, "folder_name":folder.name}
+    return JsonResponse(data, safe=False)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -83,10 +90,16 @@ def tagList(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def tagDetail(request, pk):
-    tags = Tag.objects.get(id=pk)
-    serializer = FolderSerializer(tags,many=False)
-    return Response(serializer.data)
+    tag = Tag.objects.get(id=pk)
+    bookmark_id = list(tag.all_bm_tag.all().values('id'))
+    # only get id of the bookmarks and make them into a python list
+    bookmarks = []
+    for each in bookmark_id:
+        bookmarks.append(each['id'])
+    data = {"bookmarks":bookmarks, "tag_name":tag.name}
+    return JsonResponse(data, safe=False)
 
 @api_view(['GET'])
 def bookmarkDetail(request, pk):  
@@ -106,9 +119,15 @@ def bookmarkCreate(request):
 
 
     # json.loads: Deserialize string to a Python object
-    url = json.loads(request.body)
-    print(request.body)
-    preview_data = generate_preview(url)
+    data = json.loads(request.body)
+    # print(data)
+    # print('page_url:', data['page_url'])
+    # print("request.data!!!!!!!!!!!!!!!", request.data)
+    preview_data = generate_preview(data['page_url'])
+    preview_data['user'] = request.user.id
+    preview_data['folder'] = [data['folder']]
+    preview_data['tag'] = [data['tag']]
+    # print(preview_data)
     serializer = BookmarkSerializer(data=preview_data)
     # serializer.user = request.user
    
@@ -125,8 +144,8 @@ def bookmarkUpdate(request,pk):
     
     if serializer.is_valid():
         serializer.save()
-    else:
-        print(serializer.errors)
+    # else:
+        # print(serializer.errors)
     return Response(serializer.data)
     
 @api_view(['DELETE'])
@@ -199,6 +218,8 @@ def get_desc(html):
         desc = html.find("meta", property="twitter:description").get('content')
     elif html.find("meta", property="description"):
         desc = html.find("meta", property="description").get('content')
+    elif html.find("meta", {'name':"description"}):
+        desc = html.find("meta", {'name':"description"}).get('content')
     else:
         
         descs = html.find_all("p")
@@ -221,14 +242,20 @@ def get_image(html):
         return image
     else:
         images = html.find_all("img")
-        print(html)
+        print(images)
         largest_area = 0
         largest_image_url = None
-        for image in images:
-            if image['src']:
+        
+        for image in images[0:9]:
+            image_raw = ""
+            if image.has_attr('src') and image['src'].startswith('https://'):
+                
+                
                 image_raw = image['src']
-            elif image['data-src']:
+                # print("src",image_raw)
+            elif image.has_attr('data-src') and image['data-src'].startswith('https://'):
                 image_raw = image['data-src']
+                # print("ddddddddddddddata-src",image_raw)
             else:
                 pass
             
