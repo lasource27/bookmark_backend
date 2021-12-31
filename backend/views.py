@@ -126,8 +126,9 @@ def bookmarkCreate(request):
     preview_data = generate_preview(data['page_url'])
     preview_data['user'] = request.user.id
     preview_data['folder'] = [data['folder']]
-    preview_data['tag'] = [data['tag']]
-    # print(preview_data)
+    preview_data['tag'] = data['tag']
+    print(preview_data['folder'])
+    print(data['tag'])
     serializer = BookmarkSerializer(data=preview_data)
     # serializer.user = request.user
    
