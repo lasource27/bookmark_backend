@@ -156,6 +156,26 @@ def bookmarkDelete(request, pk):
     bookmark.delete()
     return Response('task deleted')
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def tagCreate(request):
+    data = json.loads(request.body)
+    data['user'] = request.user.id
+    
+    serializer = TagSerializer(data=data)
+    print(serializer)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+   
+    return JsonResponse(data)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def tagDelete(request, pk):
+    tag = Tag.objects.get(id=pk)
+    tag.delete()
+    return Response('task deleted')
+
 # =============================================================================================================================================================================
 
 
@@ -192,7 +212,7 @@ def generate_preview(page_url):
             'title': get_title(html),
             'description': get_desc(html),
             'page_url': page_url,
-            'preview_image': get_image(html),
+            'preview_image': get_image(html,page_url),
             'domain': domain_name,
         } 
 
@@ -233,7 +253,7 @@ def get_desc(html):
                     desc = this_desc.string
     return desc
 
-def get_image(html):
+def get_image(html, page_url):
     image = None
     if html.find("meta", property="og:image"):
         image = html.find("meta", property="og:image").get('content')
@@ -257,17 +277,22 @@ def get_image(html):
             elif image.has_attr('data-src') and image['data-src'].startswith('https://'):
                 image_raw = image['data-src']
                 # print("ddddddddddddddata-src",image_raw)
+            elif image.has_attr('src') and image['src'].endswith(('jpg','png')):
+                image_raw = urllib.parse.urljoin(page_url, image['src'])
             else:
                 pass
-            
-            if image_raw.startswith('https://'):
-                user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
-                headers = {'User-Agent': user_agent}
-                request = urllib.request.Request(image_raw, headers=headers)
-                fd = urllib.request.urlopen(request)
-                
-                image_file = io.BytesIO(fd.read())
-                try:    
+            print("image_raw:", image_raw)
+            if image_raw.startswith(('https://','http://')):
+                try:  
+                    user_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
+                    headers = {'User-Agent': user_agent}
+                    request = urllib.request.Request(image_raw, headers=headers)
+                    print("request.", request)
+                    fd = urllib.request.urlopen(request)
+                    print("fd.", fd)
+                    
+                    image_file = io.BytesIO(fd.read())
+                  
                     im = Image.open(image_file)
                     width, height = im.size
                     area = width * height

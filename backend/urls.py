@@ -20,6 +20,8 @@ urlpatterns = [
     path('bookmark-update/<str:pk>', views.bookmarkUpdate, name="bookmark-update"),
     path('bookmark-delete/<str:pk>', views.bookmarkDelete, name="bookmark-delete"),
     path('generate-preview', views.generate_preview, name="generate-preview"),
+    path('tag-create/', views.tagCreate, name="tag-create"),
+    path('tag-delete/<str:pk>', views.tagDelete, name="tag-delete"),
 ]
 
 urlpatterns += [
