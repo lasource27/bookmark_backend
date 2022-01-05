@@ -169,6 +169,17 @@ def tagCreate(request):
    
     return JsonResponse(data)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def tagUpdate(request, pk):
+    tag = Tag.objects.get(id=pk)
+    request.data['user'] = request.user.id
+    serializer = TagSerializer(instance=tag, data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+        
+    return Response(serializer.data)
+
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def tagDelete(request, pk):
