@@ -71,8 +71,8 @@ class Bookmark(models.Model):
     preview_image = models.CharField(max_length=600, blank=True, null=True)
     domain = models.CharField(max_length=200, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="all_bm_user")
-    folder = models.ManyToManyField(Folder,related_name="all_bm_folder")
-    tag = models.ManyToManyField(Tag,related_name="all_bm_tag")
+    folder = models.ManyToManyField(Folder,related_name="all_bm_folder", null=True, blank=True)
+    tag = models.ManyToManyField(Tag,related_name="all_bm_tag",null=True, blank=True)
     
 
     def __str__(self):

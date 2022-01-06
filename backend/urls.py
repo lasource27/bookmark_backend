@@ -23,6 +23,9 @@ urlpatterns = [
     path('tag-create/', views.tagCreate, name="tag-create"),
     path('tag-update/<str:pk>', views.tagUpdate, name="tag-update"),
     path('tag-delete/<str:pk>', views.tagDelete, name="tag-delete"),
+    path('folder-create/', views.folderCreate, name="folder-create"),
+    path('folder-update/<str:pk>', views.folderUpdate, name="folder-update"),
+    path('folder-delete/<str:pk>', views.folderDelete, name="folder-delete"),
 ]
 
 urlpatterns += [

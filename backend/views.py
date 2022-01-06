@@ -125,10 +125,18 @@ def bookmarkCreate(request):
     # print("request.data!!!!!!!!!!!!!!!", request.data)
     preview_data = generate_preview(data['page_url'])
     preview_data['user'] = request.user.id
-    preview_data['folder'] = [data['folder']]
-    preview_data['tag'] = data['tag']
+    if not data['folder'] == '':
+        preview_data['folder'] = [data['folder']]
+    else:
+        preview_data['folder'] = []
+    if not data['tag'] == '[]':
+        preview_data['tag'] = data['tag']
+    else:
+        preview_data['tag'] = []
+        print("yes")
     print(preview_data['folder'])
     print(data['tag'])
+    print(preview_data)
     serializer = BookmarkSerializer(data=preview_data)
     # serializer.user = request.user
    
@@ -186,6 +194,38 @@ def tagDelete(request, pk):
     tag = Tag.objects.get(id=pk)
     tag.delete()
     return Response('task deleted')
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def folderCreate(request):
+    data = json.loads(request.body)
+    data['user'] = request.user.id
+    
+    serializer = FolderSerializer(data=data)
+    print(serializer)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+   
+    return JsonResponse(data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def folderUpdate(request, pk):
+    folder = Folder.objects.get(id=pk)
+    request.data['user'] = request.user.id
+    serializer = FolderSerializer(instance=folder, data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+        
+    return Response(serializer.data)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def folderDelete(request, pk):
+    folder = Folder.objects.get(id=pk)
+    folder.delete()
+    return Response('folder deleted')
 
 # =============================================================================================================================================================================
 
