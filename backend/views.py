@@ -148,8 +148,11 @@ def bookmarkCreate(request):
 
 @api_view(['POST'])
 def bookmarkUpdate(request,pk):
-    print(request.data)
     bookmark = Bookmark.objects.get(id=pk)
+    request.data['user'] = request.user.id
+    
+    print(request.data)
+   
     serializer = BookmarkSerializer(instance=bookmark, data=request.data)
     if serializer.is_valid():
         serializer.save()
