@@ -148,13 +148,13 @@ def bookmarkCreate(request):
 
 @api_view(['POST'])
 def bookmarkUpdate(request,pk):
+    print(request.data)
     bookmark = Bookmark.objects.get(id=pk)
     serializer = BookmarkSerializer(instance=bookmark, data=request.data)
-    
     if serializer.is_valid():
         serializer.save()
-    # else:
-        # print(serializer.errors)
+    else:
+        print(serializer.errors)
     return Response(serializer.data)
     
 @api_view(['DELETE'])
