@@ -119,47 +119,62 @@ def bookmarkCreate(request):
 
 
     # json.loads: Deserialize string to a Python object
-    data = json.loads(request.body)
-    # print(data)
-    # print('page_url:', data['page_url'])
-    # print("request.data!!!!!!!!!!!!!!!", request.data)
-    preview_data = generate_preview(data['page_url'])
-    preview_data['user'] = request.user.id
-    if not data['folder'] == '':
-        preview_data['folder'] = [data['folder']]
-    else:
-        preview_data['folder'] = []
-    if not data['tag'] == '[]':
-        preview_data['tag'] = data['tag']
-    else:
-        preview_data['tag'] = []
-        print("yes")
-    print(preview_data['folder'])
-    print(data['tag'])
-    print(preview_data)
-    serializer = BookmarkSerializer(data=preview_data)
-    # serializer.user = request.user
-   
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
-        print("saved!!!!!!!!!!!!!!!")
+    try:
+        data = json.loads(request.body)
+        # print(data)
+        # print('page_url:', data['page_url'])
+        # print("request.data!!!!!!!!!!!!!!!", request.data)
+        
+        preview_data = generate_preview(data['page_url'])
+        preview_data['user'] = request.user.id
+        if not data['folder'] == '':
+            preview_data['folder'] = data['folder']
+        else:
+            preview_data['folder'] = ''
+        if not data['tag'] == '[]':
+            preview_data['tag'] = data['tag']
+        else:
+            preview_data['tag'] = []
+            print("yes")
+        print(preview_data['folder'])
+        print(data['tag'])
+        print(preview_data)
+        serializer = BookmarkSerializer(data=preview_data)
+        print("HEREDSIOGFHJOSLDKJNH")
+        # serializer.user = request.user
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            print("saved!!!!!!!!!!!!!!!")
+        else:
+            print("errorvgdsfersg r")
+    except:
+        preview_data = {}
+        preview_data["error"] = "error"
     
-    return JsonResponse(preview_data)
+    return JsonResponse(preview_data)   
 
 @api_view(['POST'])
 def bookmarkUpdate(request,pk):
-    bookmark = Bookmark.objects.get(id=pk)
-    request.data['user'] = request.user.id
+    try:
+        bookmark = Bookmark.objects.get(id=pk)
+        request.data['user'] = request.user.id
+        
+        print(request.data)
     
-    print(request.data)
-   
-    serializer = BookmarkSerializer(instance=bookmark, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-    else:
-        print(serializer.errors)
-    return Response(serializer.data)
+        serializer = BookmarkSerializer(instance=bookmark, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            print(serializer.errors)
+        return Response(serializer.data)
+    except:
+        data = {}
+        data["error"] = "error"
+        return JsonResponse(data)   
+
     
+    return JsonResponse(preview_data)   
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def bookmarkDelete(request, pk):
@@ -388,7 +403,7 @@ class RegisterView(generics.GenericAPIView):
         current_site = get_current_site(request).domain
         relativeLink = reverse('email-verify')
         absurl = 'http://'+ current_site + relativeLink + '?token=' + str(token)
-        email_body = 'Hi '+user.username + ' Use Link below to verify your email \n'+ absurl
+        email_body = 'Hi '+user.username + ', use Link below to verify your email \n'+ absurl
         data ={'email_body':email_body, 'email_subject': 'Verify your email', 'to_email':user.email }
         Util.send_email(data)
 
