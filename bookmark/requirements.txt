@@ -1,9 +1,0 @@
-Django
-django-cors-headers
-djangorestframework
-djangorestframework-simplejwt
-python-dotenv
-requests
-bs4beautifulsoup4
-tldextract
-Pillow 

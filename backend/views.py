@@ -173,8 +173,6 @@ def bookmarkUpdate(request,pk):
         data["error"] = "error"
         return JsonResponse(data)   
 
-    
-    return JsonResponse(preview_data)   
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def bookmarkDelete(request, pk):
